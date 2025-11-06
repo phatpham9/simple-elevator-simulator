@@ -2,8 +2,11 @@ import { useState } from 'react'
 import { useElevatorSystem } from '../hooks/useElevatorSystem'
 import ConfigurationPanel from './ConfigurationPanel'
 import BuildingVisualization from './BuildingVisualization'
-import ControlPanel from './ControlPanel'
+import TabbedControlPanel from './TabbedControlPanel'
 import InstructionsPanel from './InstructionsPanel'
+import HeroSection from './HeroSection'
+import CollapsibleSidebar from './CollapsibleSidebar'
+import StatisticsDashboard from './StatisticsDashboard'
 
 const Elevator = () => {
     // Configuration state
@@ -17,19 +20,35 @@ const Elevator = () => {
     const isAutoMode = schedulingMode !== 'manual'
 
     return (
-        <div className="p-4 bg-gray-100 min-h-screen">
-            <div className="max-w-6xl mx-auto">
-                <h1 className="text-2xl font-bold mb-4">Elevator Simulator</h1>
+        <div className="p-4 bg-gradient-to-br from-slate-100 via-slate-50 to-blue-50 min-h-screen">
+            {/* Collapsible Instructions Sidebar */}
+            <CollapsibleSidebar>
+                <InstructionsPanel />
+            </CollapsibleSidebar>
 
+            <div className="max-w-7xl mx-auto">
+                {/* Hero Section with Algorithm Selector */}
+                <HeroSection 
+                    schedulingMode={schedulingMode}
+                    setSchedulingMode={setSchedulingMode}
+                />
+
+                {/* Configuration Panel */}
                 <ConfigurationPanel 
                     numFloors={numFloors}
                     setNumFloors={setNumFloors}
                     numElevators={numElevators}
                     setNumElevators={setNumElevators}
-                    schedulingMode={schedulingMode}
-                    setSchedulingMode={setSchedulingMode}
                 />
 
+                {/* Statistics Dashboard */}
+                <StatisticsDashboard 
+                    elevators={elevators}
+                    calls={calls}
+                    isAutoMode={isAutoMode}
+                />
+
+                {/* Building Visualization */}
                 <BuildingVisualization
                     numFloors={numFloors}
                     numElevators={numElevators}
@@ -38,7 +57,8 @@ const Elevator = () => {
                     callElevator={callElevator}
                 />
 
-                <ControlPanel
+                {/* Tabbed Control Panel */}
+                <TabbedControlPanel
                     calls={calls}
                     elevators={elevators}
                     assignCall={assignCall}
@@ -48,8 +68,6 @@ const Elevator = () => {
                     autoAssignCalls={autoAssignCalls}
                     schedulingMode={schedulingMode}
                 />
-
-                <InstructionsPanel />
             </div>
         </div>
     )
