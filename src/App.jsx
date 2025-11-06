@@ -1,6 +1,4 @@
-import React from 'react'
 import Elevator from './components/Elevator'
-
 
 function App() {
   return (
