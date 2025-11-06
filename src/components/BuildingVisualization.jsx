@@ -5,34 +5,38 @@ const BuildingVisualization = ({ numFloors, numElevators, elevators, calls, call
     const floors = generateFloors(numFloors)
 
     return (
-        <div className="bg-white border-4 border-gray-800 rounded-lg shadow mb-6 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-lg border-2 border-slate-300 mb-6 overflow-hidden hover:shadow-xl transition-shadow duration-200">
+            <div className="bg-gradient-to-r from-slate-700 to-slate-800 px-6 py-4">
+                <h2 className="text-xl font-bold text-white">Building Visualization</h2>
+                <p className="text-slate-300 text-sm mt-1">Click call buttons to request an elevator</p>
+            </div>
             <div className="flex">
                 {/* Left column - floor numbers */}
-                <div className="w-16 shrink-0 border-r border-gray-300">
-                    <div className="h-12 flex items-center justify-center font-bold bg-gray-100 border-b border-gray-300">
+                <div className="w-20 shrink-0 border-r-2 border-slate-200 bg-slate-50">
+                    <div className="h-14 flex items-center justify-center font-bold text-slate-600 bg-slate-100 border-b-2 border-slate-200">
                         Floor
                     </div>
                     {floors.map(floor => (
-                        <div key={`floor-${floor}`} className="h-20 flex items-center justify-center font-medium border-b last:border-b-0 border-gray-300">
+                        <div key={`floor-${floor}`} className="h-20 flex items-center justify-center font-semibold text-slate-700 text-lg border-b border-slate-200 last:border-b-0">
                             {floor}
                         </div>
                     ))}
                 </div>
 
                 {/* Middle column - call buttons */}
-                <div className="w-16 shrink-0 border-r border-gray-300">
-                    <div className="h-12 flex items-center justify-center font-bold bg-gray-100 border-b border-gray-300">
+                <div className="w-20 shrink-0 border-r-2 border-slate-200 bg-slate-50">
+                    <div className="h-14 flex items-center justify-center font-bold text-slate-600 bg-slate-100 border-b-2 border-slate-200">
                         Call
                     </div>
                     {floors.map(floor => (
-                        <div key={`buttons-${floor}`} className="h-20 flex flex-col items-center justify-center space-y-1 border-b last:border-b-0 border-gray-300">
+                        <div key={`buttons-${floor}`} className="h-20 flex flex-col items-center justify-center space-y-1.5 border-b border-slate-200 last:border-b-0">
                             {floor < numFloors && (
                                 <button
                                     onClick={() => callElevator(floor, 'up')}
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center
+                                    className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-lg transition-all duration-200 transform hover:scale-110 active:scale-95 shadow-md
                         ${calls.some(c => c.floor === floor && c.direction === 'up')
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-blue-500 hover:bg-blue-600 text-white'
+                                            ? 'bg-blue-600 text-white shadow-lg ring-2 ring-blue-300'
+                                            : 'bg-blue-500 hover:bg-blue-600 text-white hover:shadow-lg'
                                         }`}
                                 >
                                     ↑
@@ -42,10 +46,10 @@ const BuildingVisualization = ({ numFloors, numElevators, elevators, calls, call
                             {floor > 1 && (
                                 <button
                                     onClick={() => callElevator(floor, 'down')}
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center
+                                    className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-lg transition-all duration-200 transform hover:scale-110 active:scale-95 shadow-md
                         ${calls.some(c => c.floor === floor && c.direction === 'down')
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-blue-500 hover:bg-blue-600 text-white'
+                                            ? 'bg-blue-600 text-white shadow-lg ring-2 ring-blue-300'
+                                            : 'bg-blue-500 hover:bg-blue-600 text-white hover:shadow-lg'
                                         }`}
                                 >
                                     ↓
@@ -56,22 +60,22 @@ const BuildingVisualization = ({ numFloors, numElevators, elevators, calls, call
                 </div>
 
                 {/* Elevator shafts */}
-                <div className="flex-1 flex">
+                <div className="flex-1 flex bg-slate-50">
                     {Array(numElevators).fill().map((_, elevIndex) => (
                         <div
                             key={`shaft-${elevIndex}`}
-                            className="flex-1 border-r last:border-r-0 border-gray-300 relative"
+                            className="flex-1 border-r-2 last:border-r-0 border-slate-200 relative"
                         >
-                            <div className="h-12 flex items-center justify-center font-bold bg-gray-100 border-b border-gray-300">
+                            <div className="h-14 flex items-center justify-center font-bold text-slate-700 bg-slate-100 border-b-2 border-slate-200">
                                 Elevator {elevIndex + 1}
                             </div>
 
                             {/* Elevator shaft */}
-                            <div className="relative">
+                            <div className="relative bg-gradient-to-b from-slate-50 to-slate-100">
                                 {floors.map(floor => (
                                     <div
                                         key={`cell-${elevIndex}-${floor}`}
-                                        className="h-20 border-b last:border-b-0 border-gray-300"
+                                        className="h-20 border-b border-slate-200 last:border-b-0"
                                     />
                                 ))}
 

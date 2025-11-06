@@ -19,7 +19,7 @@ export const useElevatorSystem = (numFloors, numElevators, schedulingMode = 'man
                 targetFloor: null,
                 direction: 'idle',
                 isMoving: false,
-                queue: [] // Queue of floors to visit
+                queue: [] // Queue of {floor, callDirection} objects
             }))
         )
         setCalls([])
@@ -46,17 +46,48 @@ export const useElevatorSystem = (numFloors, numElevators, schedulingMode = 'man
     }
 
     // Add a floor to an elevator's queue
-    const addToElevatorQueue = (elevatorId, floor) => {
+    const addToElevatorQueue = (elevatorId, floor, callDirection = null) => {
         setElevators(prev =>
             prev.map(e => {
                 if (e.id !== elevatorId) return e
 
+                // Create queue entry with floor and direction
+                const queueEntry = callDirection ? { floor, callDirection } : { floor, callDirection: null }
+                
+                // For display and algorithm purposes, extract just the floor numbers
+                const queueFloors = e.queue.map(q => q.floor)
+                
                 // Add floor to queue using the selected algorithm's queue insertion
-                const newQueue = insertIntoQueue(e.queue, e.currentFloor, e.direction, floor, schedulingMode)
+                const newQueueFloors = insertIntoQueue(queueFloors, e.currentFloor, e.direction, floor, schedulingMode)
+                
+                // Rebuild queue with direction information
+                // Keep existing entries and add the new one
+                let newQueue = [...e.queue]
+                
+                // Check if this floor is already in queue
+                const existingIndex = newQueue.findIndex(q => q.floor === floor)
+                if (existingIndex === -1) {
+                    // Find where to insert based on the new queue order from algorithm
+                    const newFloorIndex = newQueueFloors.indexOf(floor)
+                    // Count how many floors before this one in the algorithm queue
+                    const floorsBeforeInAlgo = newQueueFloors.slice(0, newFloorIndex)
+                    
+                    // Find insertion position in actual queue
+                    let insertPos = 0
+                    for (const floorBefore of floorsBeforeInAlgo) {
+                        const posInQueue = newQueue.findIndex(q => q.floor === floorBefore)
+                        if (posInQueue !== -1 && posInQueue >= insertPos) {
+                            insertPos = posInQueue + 1
+                        }
+                    }
+                    
+                    newQueue.splice(insertPos, 0, queueEntry)
+                }
                 
                 // If elevator is idle, start moving immediately
                 if (e.direction === 'idle' && !e.isMoving) {
-                    const targetFloor = newQueue[0]
+                    const firstInQueue = newQueue[0]
+                    const targetFloor = firstInQueue.floor
                     const newDirection = targetFloor > e.currentFloor ? 'up' : 'down'
                     
                     return {
@@ -65,6 +96,25 @@ export const useElevatorSystem = (numFloors, numElevators, schedulingMode = 'man
                         targetFloor,
                         direction: newDirection,
                         isMoving: true
+                    }
+                }
+
+                // If elevator is moving, check if we need to update the target
+                // This happens when a new floor is inserted before the current target
+                if (e.isMoving && newQueue.length > 0) {
+                    const firstInQueue = newQueue[0]
+                    const newTarget = firstInQueue.floor
+                    
+                    // Only update if the first floor in queue is different from current target
+                    if (newTarget !== e.targetFloor) {
+                        const newDirection = newTarget > e.currentFloor ? 'up' : 'down'
+                        
+                        return {
+                            ...e,
+                            queue: newQueue,
+                            targetFloor: newTarget,
+                            direction: newDirection
+                        }
                     }
                 }
 
@@ -98,7 +148,7 @@ export const useElevatorSystem = (numFloors, numElevators, schedulingMode = 'man
                         targetFloor,
                         direction: targetFloor > e.currentFloor ? 'up' : 'down',
                         isMoving: true,
-                        queue: [targetFloor]
+                        queue: [{ floor: targetFloor, callDirection: null }]
                     }
                     : e
             )
@@ -128,16 +178,80 @@ export const useElevatorSystem = (numFloors, numElevators, schedulingMode = 'man
                             nextFloor = currentFloor - 1
                         }
 
+                        // Safety check: ensure nextFloor is within valid range
+                        if (nextFloor < 1 || nextFloor > numFloors) {
+                            console.error(`Elevator ${e.id} tried to move to invalid floor ${nextFloor}`)
+                            return {
+                                ...e,
+                                targetFloor: null,
+                                direction: 'idle',
+                                isMoving: false,
+                                queue: []
+                            }
+                        }
+
                         // Check if we've reached the target floor
                         if (nextFloor === targetFloor) {
+                            // Get the call information for the reached floor
+                            const reachedCall = e.queue[0]
+                            
                             // Remove reached floor from queue
-                            const newQueue = e.queue.slice(1)
+                            let newQueue = e.queue.slice(1)
 
-                            // If more floors in queue, continue to next target
-                            if (newQueue.length > 0) {
-                                const nextTarget = newQueue[0]
-                                const newDirection = nextTarget > nextFloor ? 'up' : 'down'
+                            // For SSTF algorithm, re-sort queue based on new position
+                            if (schedulingMode === 'sstf' && newQueue.length > 0) {
+                                newQueue.sort((a, b) => {
+                                    const distA = Math.abs(a.floor - nextFloor)
+                                    const distB = Math.abs(b.floor - nextFloor)
+                                    return distA - distB
+                                })
+                            }
 
+                            // Determine next direction based on call direction or queue
+                            let newDirection = 'idle'
+                            let nextTarget = null
+                            
+                            // If the call had a direction, continue in that direction if possible
+                            if (reachedCall && reachedCall.callDirection && isAutoMode) {
+                                // Check if there are more floors in the call direction
+                                const continueDirection = reachedCall.callDirection
+                                
+                                // For LOOK: continue in call direction to serve similar calls
+                                if (schedulingMode === 'look') {
+                                    // Find next floor in the same direction from queue
+                                    const nextInDirection = newQueue.find(q => {
+                                        if (continueDirection === 'up') {
+                                            return q.floor > nextFloor
+                                        } else {
+                                            return q.floor < nextFloor
+                                        }
+                                    })
+                                    
+                                    if (nextInDirection) {
+                                        nextTarget = nextInDirection.floor
+                                        newDirection = continueDirection
+                                    } else if (newQueue.length > 0) {
+                                        // No more in same direction, go to next in queue
+                                        nextTarget = newQueue[0].floor
+                                        newDirection = nextTarget > nextFloor ? 'up' : 'down'
+                                    }
+                                } else {
+                                    // SSTF or manual: just go to next in queue
+                                    if (newQueue.length > 0) {
+                                        nextTarget = newQueue[0].floor
+                                        newDirection = nextTarget > nextFloor ? 'up' : 'down'
+                                    }
+                                }
+                            } else {
+                                // No call direction (manual mode) - just go to next floor in queue
+                                if (newQueue.length > 0) {
+                                    nextTarget = newQueue[0].floor
+                                    newDirection = nextTarget > nextFloor ? 'up' : 'down'
+                                }
+                            }
+
+                            // If we have a next target, continue moving
+                            if (nextTarget !== null) {
                                 return {
                                     ...e,
                                     currentFloor: nextFloor,
@@ -175,7 +289,7 @@ export const useElevatorSystem = (numFloors, numElevators, schedulingMode = 'man
                 if (interval) clearTimeout(interval)
             })
         }
-    }, [elevators])
+    }, [elevators, schedulingMode, numFloors, isAutoMode])
 
     // Assign a call to an elevator (manual mode)
     const assignCall = (callId, elevatorId) => {

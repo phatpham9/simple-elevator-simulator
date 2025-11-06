@@ -26,16 +26,9 @@ export const sstfAlgorithm = (elevators, callFloor) => {
     let minDistance = Infinity
 
     for (const elevator of elevators) {
-        // Calculate distance from elevator to call floor
-        // Consider the elevator's current position or its target if moving
-        let elevatorPosition = elevator.currentFloor
-        
-        // If elevator has a queue, consider the last floor in queue
-        if (elevator.queue && elevator.queue.length > 0) {
-            elevatorPosition = elevator.queue[elevator.queue.length - 1]
-        }
-        
-        const distance = Math.abs(elevatorPosition - callFloor)
+        // Calculate distance from elevator's CURRENT position to call floor
+        // For SSTF, we always use current floor, not target or queue
+        const distance = Math.abs(elevator.currentFloor - callFloor)
         
         if (distance < minDistance) {
             minDistance = distance
