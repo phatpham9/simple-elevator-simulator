@@ -1,8 +1,8 @@
-# 🚀 SmartLift
+# 🚀 simple-elevator-simulator
 
-A simple lift (elevator) simulator where you can test and visualize how different elevator algorithms perform in a building with multiple floors and lifts.
+A simple elevator simulator where you can test and visualize how different elevator algorithms perform in a building with multiple floors and lifts.
 
-Live Demo: [arunsai63.github.io/SmartLift](https://arunsai63.github.io/SmartLift)  
+> **Note:** This repository is a fork of [arunsai63/SmartLift](https://github.com/arunsai63/SmartLift)  
 
 <img width="617" alt="image" src="https://github.com/user-attachments/assets/5d9639f2-517a-42e3-9ea7-4d9a6c2e5da3" />
 

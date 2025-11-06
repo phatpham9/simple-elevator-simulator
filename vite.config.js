@@ -8,5 +8,9 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
-  base: '/SmartLift/',
+  base: '/',
+  server: {
+    port: 3000, // Custom port
+    open: true, // Auto-open browser
+  }
 })
