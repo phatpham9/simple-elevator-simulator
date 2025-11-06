@@ -9,9 +9,12 @@ const Elevator = () => {
     // Configuration state
     const [numFloors, setNumFloors] = useState(5)
     const [numElevators, setNumElevators] = useState(3)
+    const [schedulingMode, setSchedulingMode] = useState('manual')
 
     // Use custom hook for elevator system logic
-    const { elevators, calls, callElevator, moveElevator, assignCall } = useElevatorSystem(numFloors, numElevators)
+    const { elevators, calls, callElevator, moveElevator, assignCall, autoAssignCalls } = useElevatorSystem(numFloors, numElevators, schedulingMode)
+    
+    const isAutoMode = schedulingMode !== 'manual'
 
     return (
         <div className="p-4 bg-gray-100 min-h-screen">
@@ -23,6 +26,8 @@ const Elevator = () => {
                     setNumFloors={setNumFloors}
                     numElevators={numElevators}
                     setNumElevators={setNumElevators}
+                    schedulingMode={schedulingMode}
+                    setSchedulingMode={setSchedulingMode}
                 />
 
                 <BuildingVisualization
@@ -39,6 +44,9 @@ const Elevator = () => {
                     assignCall={assignCall}
                     moveElevator={moveElevator}
                     numFloors={numFloors}
+                    isAutoMode={isAutoMode}
+                    autoAssignCalls={autoAssignCalls}
+                    schedulingMode={schedulingMode}
                 />
 
                 <InstructionsPanel />
