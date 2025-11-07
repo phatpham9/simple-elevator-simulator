@@ -8,6 +8,19 @@ const StatisticsDashboard = ({ elevators, calls, isAutoMode, assignCall, compact
         pendingCalls: 0,
         idleElevators: 0
     })
+    const [expandedSections, setExpandedSections] = useState({
+        systemStatus: true,
+        performance: true,
+        activity: true,
+        callQueue: true
+    })
+
+    const toggleSection = (section) => {
+        setExpandedSections(prev => ({
+            ...prev,
+            [section]: !prev[section]
+        }))
+    }
 
     // Calculate average wait time
     const avgWaitTime = performanceMetrics && performanceMetrics.callsServed > 0
@@ -64,188 +77,262 @@ const StatisticsDashboard = ({ elevators, calls, isAutoMode, assignCall, compact
     if (compact) {
         return (
             <div className="space-y-3">
-                {/* Compact Stats Grid */}
-                <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-lg">🚀</span>
-                            <span className="text-xs text-slate-500">/{elevators.length}</span>
+                {/* 🏢 SYSTEM STATUS */}
+                <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+                    <button 
+                        onClick={() => toggleSection('systemStatus')}
+                        className="w-full px-3 py-2 bg-gradient-to-r from-blue-50 to-slate-50 border-b border-slate-200 flex items-center justify-between hover:bg-blue-100 transition-colors"
+                    >
+                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            🏢 System Status
+                        </h3>
+                        <span className="text-xs text-slate-500">
+                            {expandedSections.systemStatus ? '▼' : '▶'}
+                        </span>
+                    </button>
+                    {expandedSections.systemStatus && (
+                        <div className="p-3 space-y-2">
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="text-lg">🚀</span>
+                                        <span className="text-xs text-slate-500">/{elevators.length}</span>
+                                    </div>
+                                    <div className="text-xl font-bold text-blue-700">{stats.activeElevators}</div>
+                                    <div className="text-xs font-semibold text-slate-700">Active</div>
+                                </div>
+                                <div className="bg-slate-50 border border-slate-200 rounded-lg p-2">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="text-lg">💤</span>
+                                        <span className="text-xs text-slate-500">/{elevators.length}</span>
+                                    </div>
+                                    <div className="text-xl font-bold text-slate-700">{stats.idleElevators}</div>
+                                    <div className="text-xs font-semibold text-slate-700">Idle</div>
+                                </div>
+                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-2">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="text-lg">📞</span>
+                                    </div>
+                                    <div className="text-xl font-bold text-amber-700">{stats.pendingCalls}</div>
+                                    <div className="text-xs font-semibold text-slate-700">Pending Calls</div>
+                                </div>
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-2">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="text-lg">📋</span>
+                                    </div>
+                                    <div className="text-xl font-bold text-green-700">{stats.totalTrips}</div>
+                                    <div className="text-xs font-semibold text-slate-700">Queued Stops</div>
+                                </div>
+                            </div>
+                            
+                            {/* Overall Status */}
+                            <div className="grid grid-cols-2 gap-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
+                                <div className="text-center">
+                                    <div className="text-xs text-slate-500">Mode</div>
+                                    <div className="text-sm font-bold text-slate-700">
+                                        {isAutoMode ? '🤖 Auto' : '👆 Manual'}
+                                    </div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-xs text-slate-500">Status</div>
+                                    <div className="text-sm font-bold">
+                                        {stats.pendingCalls > 0 ? (
+                                            <span className="text-blue-600">🔵 Active</span>
+                                        ) : (
+                                            <span className="text-green-600">🟢 Ready</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div className="text-xl font-bold text-blue-700">{stats.activeElevators}</div>
-                        <div className="text-xs font-semibold text-slate-700">Active</div>
-                    </div>
-                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-2">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-lg">💤</span>
-                            <span className="text-xs text-slate-500">/{elevators.length}</span>
-                        </div>
-                        <div className="text-xl font-bold text-slate-700">{stats.idleElevators}</div>
-                        <div className="text-xs font-semibold text-slate-700">Idle</div>
-                    </div>
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-2">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-lg">📞</span>
-                        </div>
-                        <div className="text-xl font-bold text-amber-700">{stats.pendingCalls}</div>
-                        <div className="text-xs font-semibold text-slate-700">Calls</div>
-                    </div>
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-2">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-lg">📋</span>
-                        </div>
-                        <div className="text-xl font-bold text-green-700">{stats.totalTrips}</div>
-                        <div className="text-xs font-semibold text-slate-700">Queued</div>
-                    </div>
+                    )}
                 </div>
 
-                {/* Performance Metrics */}
-                <div className="space-y-2">
-                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-lg">⏱️</span>
-                            <span className="text-xs text-purple-600 font-semibold">
-                                {performanceMetrics?.callsServed || 0} served
-                            </span>
+                {/* 📊 PERFORMANCE METRICS */}
+                <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+                    <button 
+                        onClick={() => toggleSection('performance')}
+                        className="w-full px-3 py-2 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-slate-200 flex items-center justify-between hover:bg-purple-100 transition-colors"
+                    >
+                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            📊 Performance Metrics
+                        </h3>
+                        <span className="text-xs text-slate-500">
+                            {expandedSections.performance ? '▼' : '▶'}
+                        </span>
+                    </button>
+                    {expandedSections.performance && (
+                        <div className="p-3">
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-lg">⏱️</span>
+                                        <span className="text-xs text-purple-600 font-semibold">
+                                            {performanceMetrics?.callsServed || 0} served
+                                        </span>
+                                    </div>
+                                    <div className="text-xl font-bold text-purple-700">{avgWaitTime}s</div>
+                                    <div className="text-xs font-semibold text-slate-700">Avg Wait Time</div>
+                                    <div className="text-xs text-slate-500 mt-1">
+                                        Target: {'<'}60s
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg p-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-lg">✨</span>
+                                        <span className={`text-xs font-semibold ${
+                                            parseFloat(serviceQualityScore) >= 80 ? 'text-green-600' :
+                                            parseFloat(serviceQualityScore) >= 60 ? 'text-yellow-600' :
+                                            'text-red-600'
+                                        }`}>
+                                            {parseFloat(serviceQualityScore) >= 80 ? 'Excellent' :
+                                             parseFloat(serviceQualityScore) >= 60 ? 'Good' :
+                                             parseFloat(serviceQualityScore) >= 40 ? 'Fair' :
+                                             'Poor'}
+                                        </span>
+                                    </div>
+                                    <div className="text-xl font-bold text-emerald-700">{serviceQualityScore}%</div>
+                                    <div className="text-xs font-semibold text-slate-700">Service Quality</div>
+                                    <div className="text-xs text-slate-500 mt-1">
+                                        Calls served {'<'}60s
+                                    </div>
+                                </div>
+
+                                <div className="bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 rounded-lg p-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-lg">⚡</span>
+                                        <span className="text-xs text-violet-600 font-semibold">
+                                            Live
+                                        </span>
+                                    </div>
+                                    <div className="text-xl font-bold text-violet-700">{throughput}</div>
+                                    <div className="text-xs font-semibold text-slate-700">Calls per Minute</div>
+                                    <div className="text-xs text-slate-500 mt-1">
+                                        System throughput
+                                    </div>
+                                </div>
+
+                                <div className="bg-gradient-to-br from-cyan-50 to-blue-50 border border-cyan-200 rounded-lg p-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-lg">📈</span>
+                                        <span className="text-xs text-cyan-600 font-semibold">
+                                            Overall
+                                        </span>
+                                    </div>
+                                    <div className="text-xl font-bold text-cyan-700">{totalUtilization.toFixed(0)}%</div>
+                                    <div className="text-xs font-semibold text-slate-700">System Utilization</div>
+                                    <div className="text-xs text-slate-500 mt-1">
+                                        Active time ratio
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div className="text-xl font-bold text-purple-700">{avgWaitTime}s</div>
-                        <div className="text-xs font-semibold text-slate-700">Avg Wait Time</div>
-                        <div className="text-xs text-slate-500 mt-1">
-                            Target: {'<'}60s
-                        </div>
-                    </div>
-                    
-                    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-lg">✨</span>
-                            <span className={`text-xs font-semibold ${
-                                parseFloat(serviceQualityScore) >= 80 ? 'text-green-600' :
-                                parseFloat(serviceQualityScore) >= 60 ? 'text-yellow-600' :
-                                'text-red-600'
-                            }`}>
-                                {parseFloat(serviceQualityScore) >= 80 ? 'Excellent' :
-                                 parseFloat(serviceQualityScore) >= 60 ? 'Good' :
-                                 parseFloat(serviceQualityScore) >= 40 ? 'Fair' :
-                                 'Poor'}
-                            </span>
-                        </div>
-                        <div className="text-xl font-bold text-emerald-700">{serviceQualityScore}%</div>
-                        <div className="text-xs font-semibold text-slate-700">Service Quality</div>
-                        <div className="text-xs text-slate-500 mt-1">
-                            Calls {'<'}60s
-                        </div>
-                    </div>
+                    )}
                 </div>
 
-                {/* System Info */}
-                <div className="grid grid-cols-2 gap-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
-                    <div className="text-center">
-                        <div className="text-xs text-slate-500">Utilization</div>
-                        <div className="text-sm font-bold text-slate-700">
-                            {totalUtilization.toFixed(0)}%
+                {/* 📈 ACTIVITY METRICS */}
+                <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+                    <button 
+                        onClick={() => toggleSection('activity')}
+                        className="w-full px-3 py-2 bg-gradient-to-r from-indigo-50 to-cyan-50 border-b border-slate-200 flex items-center justify-between hover:bg-indigo-100 transition-colors"
+                    >
+                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            📈 Activity Metrics
+                        </h3>
+                        <span className="text-xs text-slate-500">
+                            {expandedSections.activity ? '▼' : '▶'}
+                        </span>
+                    </button>
+                    {expandedSections.activity && (
+                        <div className="p-3">
+                            <div className="grid grid-cols-3 gap-2">
+                                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-2 text-center">
+                                    <div className="text-lg">🎯</div>
+                                    <div className="text-xl font-bold text-indigo-700">{totalTripsCompleted}</div>
+                                    <div className="text-xs font-semibold text-slate-700">Trips</div>
+                                </div>
+                                <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-2 text-center">
+                                    <div className="text-lg">📏</div>
+                                    <div className="text-xl font-bold text-cyan-700">{totalFloorsTravel}</div>
+                                    <div className="text-xs font-semibold text-slate-700">Floors</div>
+                                </div>
+                                <div className="bg-rose-50 border border-rose-200 rounded-lg p-2 text-center">
+                                    <div className="text-lg">🔄</div>
+                                    <div className="text-xl font-bold text-rose-700">{totalDirectionChanges}</div>
+                                    <div className="text-xs font-semibold text-slate-700">Changes</div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-xs text-slate-500">Status</div>
-                        <div className="text-sm font-bold">
-                            {stats.pendingCalls > 0 ? (
-                                <span className="text-blue-600">🔵 Active</span>
+                    )}
+                </div>
+
+                {/* 📞 CALL QUEUE */}
+                <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+                    <button 
+                        onClick={() => toggleSection('callQueue')}
+                        className="w-full px-3 py-2 bg-gradient-to-r from-amber-50 to-yellow-50 border-b border-slate-200 flex items-center justify-between hover:bg-amber-100 transition-colors"
+                    >
+                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            📞 Call Queue
+                            <span className="text-xs font-normal text-slate-500 bg-amber-100 px-2 py-0.5 rounded-full">
+                                {calls.length}
+                            </span>
+                        </h3>
+                        <span className="text-xs text-slate-500">
+                            {expandedSections.callQueue ? '▼' : '▶'}
+                        </span>
+                    </button>
+                    {expandedSections.callQueue && (
+                        <div className="p-3">
+                            {calls.length > 0 ? (
+                                <div className="space-y-2 max-h-96 overflow-y-auto">
+                                    {calls.map(call => (
+                                        <div key={call.id} className="border border-slate-200 rounded-lg p-2 bg-gradient-to-br from-white to-slate-50 hover:shadow-sm transition-all">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-lg">
+                                                        {call.direction === 'up' ? '⬆️' : '⬇️'}
+                                                    </span>
+                                                    <div>
+                                                        <div className="text-sm font-semibold text-slate-800">Floor {call.floor}</div>
+                                                        <div className="text-xs text-slate-500">Going {call.direction}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {!isAutoMode && assignCall && (
+                                                <div className="space-y-1">
+                                                    <p className="text-xs text-slate-600 font-medium">Assign:</p>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {elevators.map(elev => (
+                                                            <button
+                                                                key={`assign-${call.id}-${elev.id}`}
+                                                                onClick={() => assignCall(call.id, elev.id)}
+                                                                className={`px-2 py-0.5 text-xs font-medium rounded ${getElevatorColorClass(elev.id)} text-white hover:opacity-90 transition-all`}
+                                                            >
+                                                                E{elev.id + 1}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {isAutoMode && (
+                                                <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200 text-center">
+                                                    Auto-assigned
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
                             ) : (
-                                <span className="text-green-600">🟢 Ready</span>
+                                <div className="bg-slate-50 border border-dashed border-slate-200 rounded-lg p-4 text-center">
+                                    <div className="text-2xl mb-1">✨</div>
+                                    <p className="text-xs text-slate-500">No pending calls</p>
+                                </div>
                             )}
                         </div>
-                    </div>
+                    )}
                 </div>
-
-                {/* Additional Metrics */}
-                <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-2 text-center">
-                        <div className="text-lg">🎯</div>
-                        <div className="text-xl font-bold text-indigo-700">{totalTripsCompleted}</div>
-                        <div className="text-xs font-semibold text-slate-700">Trips</div>
-                    </div>
-                    <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-2 text-center">
-                        <div className="text-lg">📏</div>
-                        <div className="text-xl font-bold text-cyan-700">{totalFloorsTravel}</div>
-                        <div className="text-xs font-semibold text-slate-700">Floors</div>
-                    </div>
-                    <div className="bg-rose-50 border border-rose-200 rounded-lg p-2 text-center">
-                        <div className="text-lg">🔄</div>
-                        <div className="text-xl font-bold text-rose-700">{totalDirectionChanges}</div>
-                        <div className="text-xs font-semibold text-slate-700">Changes</div>
-                    </div>
-                </div>
-
-                {/* Throughput Metric */}
-                <div className="bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-lg">⚡</span>
-                        <span className="text-xs text-violet-600 font-semibold">
-                            Live
-                        </span>
-                    </div>
-                    <div className="text-xl font-bold text-violet-700">{throughput}</div>
-                    <div className="text-xs font-semibold text-slate-700">Calls per Minute</div>
-                    <div className="text-xs text-slate-500 mt-1">
-                        Throughput rate
-                    </div>
-                </div>
-
-                {/* Pending Calls List */}
-                {calls.length > 0 && (
-                    <div className="pt-3 border-t border-slate-200">
-                        <h3 className="text-sm font-bold text-slate-800 mb-2 flex items-center justify-between">
-                            <span>📞 Pending Calls</span>
-                            <span className="text-xs font-normal text-slate-500">{calls.length}</span>
-                        </h3>
-                        <div className="space-y-2 max-h-96 overflow-y-auto">
-                            {calls.map(call => (
-                                <div key={call.id} className="border border-slate-200 rounded-lg p-2 bg-gradient-to-br from-white to-slate-50 hover:shadow-sm transition-all">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-lg">
-                                                {call.direction === 'up' ? '⬆️' : '⬇️'}
-                                            </span>
-                                            <div>
-                                                <div className="text-sm font-semibold text-slate-800">Floor {call.floor}</div>
-                                                <div className="text-xs text-slate-500">Going {call.direction}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {!isAutoMode && assignCall && (
-                                        <div className="space-y-1">
-                                            <p className="text-xs text-slate-600 font-medium">Assign:</p>
-                                            <div className="flex flex-wrap gap-1">
-                                                {elevators.map(elev => (
-                                                    <button
-                                                        key={`assign-${call.id}-${elev.id}`}
-                                                        onClick={() => assignCall(call.id, elev.id)}
-                                                        className={`px-2 py-0.5 text-xs font-medium rounded ${getElevatorColorClass(elev.id)} text-white hover:opacity-90 transition-all`}
-                                                    >
-                                                        E{elev.id + 1}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                    {isAutoMode && (
-                                        <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200 text-center">
-                                            Auto-assigned
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {calls.length === 0 && (
-                    <div className="pt-3 border-t border-slate-200">
-                        <div className="bg-slate-50 border border-dashed border-slate-200 rounded-lg p-4 text-center">
-                            <div className="text-2xl mb-1">✨</div>
-                            <p className="text-xs text-slate-500">No pending calls</p>
-                        </div>
-                    </div>
-                )}
             </div>
         )
     }
