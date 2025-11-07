@@ -1,8 +1,7 @@
-import { useState } from 'react'
 import { getElevatorColorClass } from '../utils/elevatorUtils'
 
-const TabbedControlPanel = ({ calls, elevators, assignCall, moveElevator, numFloors, isAutoMode, autoAssignCalls, schedulingMode }) => {
-    const [activeTab, setActiveTab] = useState('calls')
+const TabbedControlPanel = ({ elevators, moveElevator, numFloors, isAutoMode, schedulingMode }) => {
+    // Removed calls and assignCall since they moved to the sidebar
 
     const getAlgorithmName = (mode) => {
         switch (mode) {
@@ -14,20 +13,15 @@ const TabbedControlPanel = ({ calls, elevators, assignCall, moveElevator, numFlo
                 return ''
         }
     }
-    
-    const tabs = [
-        { id: 'calls', label: 'Pending Calls', icon: '📞', count: calls.length },
-        { id: 'elevators', label: 'Elevator Controls', icon: '🛗', count: elevators.length }
-    ]
 
     return (
         <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden hover:shadow-lg transition-shadow duration-200">
-            {/* Header with Tabs */}
+            {/* Header */}
             <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
-                <div className="px-4 pt-3 pb-2">
-                    <div className="flex items-center justify-between mb-2">
-                        <h2 className="text-lg font-bold text-slate-800">
-                            Control Center
+                <div className="px-4 py-3">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            🛗 Elevator Controls
                         </h2>
                         {isAutoMode && (
                             <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full border border-green-200">
@@ -36,123 +30,25 @@ const TabbedControlPanel = ({ calls, elevators, assignCall, moveElevator, numFlo
                         )}
                     </div>
                 </div>
-                
-                {/* Tab Navigation */}
-                <div className="flex px-4">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`relative px-4 py-2 font-semibold transition-all duration-200 text-sm ${
-                                activeTab === tab.id
-                                    ? 'text-blue-600'
-                                    : 'text-slate-500 hover:text-slate-700'
-                            }`}
-                        >
-                            <span className="flex items-center gap-2">
-                                <span>{tab.icon}</span>
-                                <span>{tab.label}</span>
-                                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                    activeTab === tab.id
-                                        ? 'bg-blue-100 text-blue-700'
-                                        : 'bg-slate-200 text-slate-600'
-                                }`}>
-                                    {tab.count}
-                                </span>
-                            </span>
-                            {/* Active indicator */}
-                            {activeTab === tab.id && (
-                                <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-t-full" />
-                            )}
-                        </button>
-                    ))}
-                </div>
             </div>
 
-            {/* Tab Content */}
+            {/* Content */}
             <div className="p-4">
-                {activeTab === 'calls' && (
-                    <div>
-                        <div className="flex items-center justify-between mb-3">
-                            <p className="text-slate-600 text-xs">
-                                {calls.length > 0 
-                                    ? `${calls.length} call${calls.length !== 1 ? 's' : ''} waiting to be ${isAutoMode ? 'processed' : 'assigned'}`
-                                    : 'No pending calls at the moment'
-                                }
-                            </p>
-                            {isAutoMode && calls.length > 0 && (
-                                <button
-                                    onClick={autoAssignCalls}
-                                    className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
-                                >
-                                    ⚡ Auto-Assign All
-                                </button>
-                            )}
-                        </div>
-                        
-                        {calls.length === 0 ? (
-                            <div className="bg-slate-50 border border-dashed border-slate-200 rounded-lg p-6 text-center">
-                                <div className="text-4xl mb-2">✨</div>
-                                <p className="text-slate-500 text-sm">
-                                    {isAutoMode 
-                                        ? 'All clear! Calls are automatically assigned.'
-                                        : 'No pending calls. Use the building visualization to request elevators.'}
-                                </p>
+                <p className="text-slate-600 text-xs mb-3">
+                    Monitor and control each elevator individually
+                </p>
+                <div className="flex gap-3">
+                    {elevators.map(elevator => (
+                        <div key={`control-${elevator.id}`} className="flex-1 border border-slate-200 rounded-lg p-3 bg-gradient-to-br from-white to-slate-50 hover:shadow-md transition-shadow duration-200">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className={`w-5 h-5 rounded-full ${getElevatorColorClass(elevator.id)} shadow-sm ring-2 ring-white`}></div>
+                                <div className="font-semibold text-slate-800 text-sm">Elevator {elevator.id + 1}</div>
+                                <div className="text-xs text-slate-500 ml-auto font-medium bg-slate-100 px-2 py-0.5 rounded">
+                                    {elevator.isMoving
+                                        ? `→ ${elevator.targetFloor}`
+                                        : `@ ${elevator.currentFloor}`}
+                                </div>
                             </div>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                {calls.map(call => (
-                                    <div key={call.id} className="border border-slate-200 rounded-lg p-3 bg-gradient-to-br from-white to-slate-50 hover:shadow-md transition-all duration-200">
-                                        <div className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
-                                            <span className="text-2xl">
-                                                {call.direction === 'up' ? '⬆️' : '⬇️'}
-                                            </span>
-                                            <div>
-                                                <div className="text-sm">Floor {call.floor}</div>
-                                                <div className="text-xs text-slate-500 font-normal">
-                                                    Going {call.direction}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <p className="text-xs text-slate-600 font-medium">Assign to:</p>
-                                            <div className="flex flex-wrap gap-1.5">
-                                                {elevators.map(elev => (
-                                                    <button
-                                                        key={`assign-${call.id}-${elev.id}`}
-                                                        onClick={() => assignCall(call.id, elev.id)}
-                                                        className={`px-2 py-1 text-xs font-medium rounded ${getElevatorColorClass(elev.id)} text-white hover:opacity-90 transition-all duration-200 shadow-sm`}
-                                                    >
-                                                        E{elev.id + 1} <span className="opacity-75">@{elev.currentFloor}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {activeTab === 'elevators' && (
-                    <div>
-                        <p className="text-slate-600 text-xs mb-3">
-                            Monitor and control each elevator individually
-                        </p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {elevators.map(elevator => (
-                                <div key={`control-${elevator.id}`} className="border border-slate-200 rounded-lg p-3 bg-gradient-to-br from-white to-slate-50 hover:shadow-md transition-shadow duration-200">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className={`w-5 h-5 rounded-full ${getElevatorColorClass(elevator.id)} shadow-sm ring-2 ring-white`}></div>
-                                        <div className="font-semibold text-slate-800 text-sm">Elevator {elevator.id + 1}</div>
-                                        <div className="text-xs text-slate-500 ml-auto font-medium bg-slate-100 px-2 py-0.5 rounded">
-                                            {elevator.isMoving
-                                                ? `→ ${elevator.targetFloor}`
-                                                : `@ ${elevator.currentFloor}`}
-                                        </div>
-                                    </div>
-
                                     {/* Show queue in auto mode */}
                                     {isAutoMode && elevator.queue && elevator.queue.length > 0 && (
                                         <div className="mb-2 p-2 bg-blue-50 border border-blue-100 rounded shadow-sm">
@@ -214,8 +110,6 @@ const TabbedControlPanel = ({ calls, elevators, assignCall, moveElevator, numFlo
                                 </div>
                             ))}
                         </div>
-                    </div>
-                )}
             </div>
         </div>
     )

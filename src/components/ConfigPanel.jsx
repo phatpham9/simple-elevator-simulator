@@ -39,9 +39,9 @@ const ConfigPanel = ({
         <div className="space-y-6">
             {/* Algorithm Selection Section */}
             <div>
-                <h2 className="text-xl font-bold mb-3 text-slate-800 flex items-center gap-2">
+                <h3 className="text-base font-bold mb-3 text-slate-800 flex items-center gap-2">
                     🎛️ Algorithm Selection
-                </h2>
+                </h3>
                 <div className="space-y-3">
                     {['manual', 'look', 'sstf'].map((mode) => {
                         const modeInfo = getAlgorithmInfo(mode)
@@ -76,9 +76,9 @@ const ConfigPanel = ({
 
             {/* Building Configuration Section */}
             <div className="pt-4 border-t border-slate-200">
-                <h2 className="text-xl font-bold mb-3 text-slate-800 flex items-center gap-2">
+                <h3 className="text-base font-bold mb-3 text-slate-800 flex items-center gap-2">
                     ⚙️ Building Configuration
-                </h2>
+                </h3>
                 <div className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -108,74 +108,6 @@ const ConfigPanel = ({
                             className="w-full border-2 border-slate-300 rounded-lg px-3 py-2 text-slate-700 font-medium focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                         />
                         <p className="text-xs text-slate-500 mt-1">Range: 2-12 elevators</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Instructions Section */}
-            <div className="pt-4 border-t border-slate-200">
-                <h2 className="text-xl font-bold mb-3 text-slate-800 flex items-center gap-2">
-                    📖 Instructions
-                </h2>
-                
-                <div className="space-y-4">
-                    <div>
-                        <h3 className="font-semibold text-sm text-blue-700 mb-2 flex items-center gap-2">
-                            🔵 Manual Mode:
-                        </h3>
-                        <ol className="list-decimal list-inside space-y-1 text-xs text-slate-700 ml-2">
-                            <li>Click up/down buttons to request an elevator</li>
-                            <li>Assign calls to elevators in Control Panel</li>
-                            <li>Send elevators directly to specific floors</li>
-                        </ol>
-                    </div>
-
-                    <div>
-                        <h3 className="font-semibold text-sm text-green-700 mb-2 flex items-center gap-2">
-                            🟢 LOOK Algorithm:
-                        </h3>
-                        <ol className="list-decimal list-inside space-y-1 text-xs text-slate-700 ml-2">
-                            <li>Automatically assigns elevators by direction</li>
-                            <li>Serves all calls in one direction first</li>
-                            <li>Minimizes direction changes</li>
-                        </ol>
-                        <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-900">
-                            <strong>💡 Best for:</strong> Overall efficiency
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 className="font-semibold text-sm text-purple-700 mb-2 flex items-center gap-2">
-                            🟣 SSTF Algorithm:
-                        </h3>
-                        <ol className="list-decimal list-inside space-y-1 text-xs text-slate-700 ml-2">
-                            <li>Always serves nearest floor next</li>
-                            <li>Minimizes immediate travel distance</li>
-                            <li>May cause longer waits for distant floors</li>
-                        </ol>
-                        <div className="mt-2 p-2 bg-purple-50 border border-purple-200 rounded text-xs text-purple-900">
-                            <strong>💡 Best for:</strong> Quick response times
-                        </div>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-200">
-                        <h3 className="font-semibold text-sm text-slate-700 mb-2">
-                            💡 Tips:
-                        </h3>
-                        <ul className="space-y-1 text-xs text-slate-700">
-                            <li className="flex gap-2">
-                                <span>•</span>
-                                <span>Monitor system performance in Statistics Dashboard</span>
-                            </li>
-                            <li className="flex gap-2">
-                                <span>•</span>
-                                <span>Use tabbed Control Panel to manage calls and elevators</span>
-                            </li>
-                            <li className="flex gap-2">
-                                <span>•</span>
-                                <span>Click settings button (⚙️) to access this panel anytime</span>
-                            </li>
-                        </ul>
                     </div>
                 </div>
             </div>
