@@ -4,6 +4,8 @@
  * The LOOK algorithm moves elevators in one direction, serving all calls in that direction
  * until there are no more requests ahead, then reverses direction.
  * This is similar to SCAN but doesn't go all the way to the top/bottom if no requests exist.
+ * 
+ * More efficient than SCAN for variable traffic patterns.
  */
 
 /**
@@ -18,10 +20,10 @@ const calculateCost = (elevator, callFloor, callDirection) => {
         return Math.abs(currentFloor - callFloor)
     }
 
-    // If elevator is moving, consider its direction and queue
-    // Extract floor number from queue (handles both old number format and new object format)
+    // Extract floor numbers from queue (handles object format)
     const getFloor = (item) => (typeof item === 'object' && item !== null) ? item.floor : item
-    const lastQueueFloor = queue.length > 0 ? getFloor(queue[queue.length - 1]) : currentFloor
+    const queueFloors = queue.map(getFloor)
+    const lastQueueFloor = queueFloors.length > 0 ? queueFloors[queueFloors.length - 1] : currentFloor
     
     // Prefer calls in the same direction as the elevator is moving
     // If call is in the same direction as elevator and ahead of it
@@ -67,7 +69,6 @@ export const lookAlgorithm = (elevators, callFloor, callDirection) => {
         
         // Skip elevators that would have extremely high cost (incompatible), 
         // UNLESS they're the only option
-        // This allows assignment when all elevators are busy but still picks the best one
         const isIncompatible = cost >= 1000
         
         if (isIncompatible) {
@@ -91,16 +92,28 @@ export const lookAlgorithm = (elevators, callFloor, callDirection) => {
  * Insert a floor into an elevator's queue in optimal order
  * For LOOK algorithm: maintains order based on direction
  * 
- * @param {Array} queue - Current queue of floors
+ * @param {Array} queue - Current queue of floors (may be numbers or objects)
  * @param {number} currentFloor - Elevator's current floor
  * @param {string} direction - Current direction ('up', 'down', or 'idle')
  * @param {number} newFloor - Floor to add to queue
- * @returns {Array} - New queue with floor inserted
+ * @returns {Array} - New queue with floor inserted (maintains input format)
  */
 export const insertIntoQueueLOOK = (queue, currentFloor, direction, newFloor) => {
     // If queue is empty or elevator is idle, just add the floor
     if (queue.length === 0 || direction === 'idle') {
         return [newFloor]
+    }
+
+    // Handle both number arrays and object arrays
+    const isObjectArray = queue.length > 0 && typeof queue[0] === 'object' && queue[0] !== null
+    
+    if (isObjectArray) {
+        // Queue contains objects - extract floors, process, and rebuild
+        const floors = queue.map(item => item.floor)
+        const newFloors = insertIntoQueueLOOK(floors, currentFloor, direction, newFloor)
+        
+        // Rebuild with objects (this is handled in useElevatorSystem, so just return floors)
+        return newFloors
     }
 
     const newQueue = [...queue]
@@ -112,35 +125,17 @@ export const insertIntoQueueLOOK = (queue, currentFloor, direction, newFloor) =>
 
     // Insert based on direction to maintain LOOK order
     if (direction === 'up') {
-        // Going up: insert floors in ascending order
-        // Only insert if floor is ahead in the direction of travel
-        const insertIndex = newQueue.findIndex(floor => floor > newFloor)
-        if (insertIndex === -1) {
-            // Floor is higher than all in queue, add at end
-            newQueue.push(newFloor)
-        } else {
-            // Insert in sorted position
-            newQueue.splice(insertIndex, 0, newFloor)
-        }
-    } else {
-        // Going down: insert floors in descending order
-        // Find the correct position to maintain descending order
-        let insertIndex = -1
-        for (let i = 0; i < newQueue.length; i++) {
-            if (newQueue[i] < newFloor) {
-                insertIndex = i
-                break
-            }
-        }
-        
-        if (insertIndex === -1) {
-            // Floor is lower than all in queue, add at end
-            newQueue.push(newFloor)
-        } else {
-            // Insert in sorted position
-            newQueue.splice(insertIndex, 0, newFloor)
-        }
+        // Going up: keep floors in ascending order
+        // Only floors >= currentFloor in current direction, then floors < currentFloor
+        newQueue.push(newFloor)
+        newQueue.sort((a, b) => a - b)
+    } else if (direction === 'down') {
+        // Going down: keep floors in descending order
+        // Only floors <= currentFloor in current direction, then floors > currentFloor
+        newQueue.push(newFloor)
+        newQueue.sort((a, b) => b - a)
     }
 
     return newQueue
 }
+

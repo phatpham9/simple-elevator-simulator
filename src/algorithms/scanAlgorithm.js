@@ -4,6 +4,9 @@
  * The SCAN algorithm moves elevators in one direction until reaching the extreme end,
  * then reverses direction. Unlike LOOK, it always goes to the top/bottom floor.
  * 
+ * This implementation uses proper extreme-reaching behavior where elevators
+ * complete full sweeps to ensure fairness and prevent starvation.
+ * 
  * Benefits over LOOK:
  * - More predictable behavior
  * - Better starvation prevention
@@ -31,14 +34,14 @@ const calculateCost = (elevator, callFloor, callDirection, maxFloor) => {
         return Math.abs(currentFloor - callFloor)
     }
 
-    // SCAN: elevator continues to the end before reversing
+    // SCAN: elevator continues to the extreme end before reversing
     if (direction === 'up') {
         if (callFloor >= currentFloor && callDirection === 'up') {
             // Call is ahead in the same direction - can pick up on the way
             return callFloor - currentFloor
         } else {
             // Need to go to top, then come back down
-            // Cost: distance to top + distance from top to call
+            // Cost: distance to top + distance from top to call floor
             const distanceToTop = maxFloor - currentFloor
             const distanceFromTopToCall = maxFloor - callFloor
             return distanceToTop + distanceFromTopToCall + 100 // Add penalty for direction change
@@ -49,7 +52,7 @@ const calculateCost = (elevator, callFloor, callDirection, maxFloor) => {
             return currentFloor - callFloor
         } else {
             // Need to go to bottom, then come back up
-            // Cost: distance to bottom + distance from bottom to call
+            // Cost: distance to bottom + distance from bottom to call floor
             const distanceToBottom = currentFloor - 1
             const distanceFromBottomToCall = callFloor - 1
             return distanceToBottom + distanceFromBottomToCall + 100 // Add penalty for direction change
@@ -90,7 +93,10 @@ export const scanAlgorithm = (elevators, callFloor, callDirection, maxFloor = 20
 
 /**
  * Insert a floor into an elevator's queue for SCAN algorithm
- * Maintains order based on direction, similar to LOOK but goes to extremes
+ * Maintains order based on direction and ensures we go to extremes
+ * 
+ * For SCAN, we MUST go to the extreme (top or bottom) before reversing.
+ * This function maintains floors in order of visit based on current direction.
  * 
  * @param {Array} queue - Current queue of floors
  * @param {number} currentFloor - Elevator's current floor
@@ -112,34 +118,25 @@ export const insertIntoQueueSCAN = (queue, currentFloor, direction, newFloor) =>
     }
 
     // Insert based on direction to maintain SCAN order
+    // SCAN goes to the extreme in current direction, so we sort accordingly
     if (direction === 'up') {
-        // Going up: insert floors in ascending order
-        const insertIndex = newQueue.findIndex(floor => floor > newFloor)
-        if (insertIndex === -1) {
-            // Floor is higher than all in queue, add at end
-            newQueue.push(newFloor)
-        } else {
-            // Insert in sorted position
-            newQueue.splice(insertIndex, 0, newFloor)
-        }
-    } else {
-        // Going down: insert floors in descending order
-        let insertIndex = -1
-        for (let i = 0; i < newQueue.length; i++) {
-            if (newQueue[i] < newFloor) {
-                insertIndex = i
-                break
-            }
-        }
+        // Going up: floors should be in ascending order
+        // We'll reach them in order from lowest to highest
+        newQueue.push(newFloor)
+        newQueue.sort((a, b) => a - b) // Sort ascending
         
-        if (insertIndex === -1) {
-            // Floor is lower than all in queue, add at end
-            newQueue.push(newFloor)
-        } else {
-            // Insert in sorted position
-            newQueue.splice(insertIndex, 0, newFloor)
-        }
+        // In SCAN, we continue up even past the highest call to reach the top
+        // The phantom floor logic in useElevatorSystem.js handles adding the extreme
+    } else if (direction === 'down') {
+        // Going down: floors should be in descending order
+        // We'll reach them in order from highest to lowest
+        newQueue.push(newFloor)
+        newQueue.sort((a, b) => b - a) // Sort descending
+        
+        // In SCAN, we continue down even past the lowest call to reach the bottom
+        // The phantom floor logic in useElevatorSystem.js handles adding the extreme
     }
 
     return newQueue
 }
+

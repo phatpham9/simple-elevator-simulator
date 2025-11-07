@@ -9,6 +9,8 @@
  * - Ignores call direction (picks nearest regardless of up/down request)
  * - Can be inefficient if new nearby calls keep arriving
  * - May cause longer wait times for far floors (starvation problem)
+ * 
+ * Educational value: Demonstrates the starvation problem in scheduling algorithms
  */
 
 /**
@@ -43,15 +45,27 @@ export const sstfAlgorithm = (elevators, callFloor) => {
  * Insert a floor into an elevator's queue for SSTF
  * Always inserts in order of distance from current position
  * 
- * @param {Array} queue - Current queue of floors
+ * @param {Array} queue - Current queue of floors (numbers or objects)
  * @param {number} currentFloor - Elevator's current floor
  * @param {number} newFloor - Floor to add to queue
- * @returns {Array} - New queue with floor inserted
+ * @returns {Array} - New queue with floor inserted, sorted by distance
  */
 export const insertIntoQueueSSTF = (queue, currentFloor, newFloor) => {
     // If queue is empty, just add the floor
     if (queue.length === 0) {
         return [newFloor]
+    }
+
+    // Handle both number arrays and object arrays
+    const isObjectArray = queue.length > 0 && typeof queue[0] === 'object' && queue[0] !== null
+    
+    if (isObjectArray) {
+        // Queue contains objects - extract floors, process, and rebuild
+        const floors = queue.map(item => item.floor)
+        const newFloors = insertIntoQueueSSTF(floors, currentFloor, newFloor)
+        
+        // Rebuild with objects (this is handled in useElevatorSystem, so just return floors)
+        return newFloors
     }
 
     const newQueue = [...queue]
@@ -62,7 +76,6 @@ export const insertIntoQueueSSTF = (queue, currentFloor, newFloor) => {
     }
 
     // For SSTF, we insert based on distance from current floor
-    // Build a sorted queue by distance
     newQueue.push(newFloor)
     
     // Sort by distance from current floor (nearest first)
@@ -74,3 +87,4 @@ export const insertIntoQueueSSTF = (queue, currentFloor, newFloor) => {
 
     return newQueue
 }
+
