@@ -2,7 +2,7 @@
 
 A simple elevator scheduling simulator that visualizes and compares different elevator dispatch algorithms in real-time. Built for educational purposes and algorithm analysis.
 
-![Simple Elevator Simulator](https://github.com/user-attachments/assets/5d9639f2-517a-42e3-9ea7-4d9a6c2e5da3)
+![Simple Elevator Simulator](docs/screenshots/simple-elevator-simulator.png)
 
 ## 📋 Overview
 

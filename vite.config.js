@@ -11,6 +11,6 @@ export default defineConfig({
   base: '/simple-elevator-simulator/',
   server: {
     port: 3000, // Custom port
-    open: true, // Auto-open browser
+    // open: true, // Auto-open browser
   }
 })

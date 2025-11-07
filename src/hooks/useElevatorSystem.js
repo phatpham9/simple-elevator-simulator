@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react'
 import { getAlgorithm, insertIntoQueue } from '../algorithms/elevatorScheduler'
+import { 
+    ELEVATOR_STATES, 
+    ELEVATOR_TIMING, 
+    calculateTravelTime,
+    calculateDoorHoldTime
+} from '../constants/elevatorTiming'
 
 /**
  * Custom hook to manage elevator system state and logic
@@ -19,7 +25,9 @@ export const useElevatorSystem = (numFloors, numElevators, schedulingMode = 'man
                 targetFloor: null,
                 direction: 'idle',
                 isMoving: false,
-                queue: [] // Queue of {floor, callDirection} objects
+                operationalState: ELEVATOR_STATES.IDLE, // New: detailed state for door operations
+                queue: [], // Queue of {floor, callDirection} objects
+                doorProgress: 0 // New: for door animation (0-100)
             }))
         )
         setCalls([])
@@ -95,7 +103,8 @@ export const useElevatorSystem = (numFloors, numElevators, schedulingMode = 'man
                         queue: newQueue,
                         targetFloor,
                         direction: newDirection,
-                        isMoving: true
+                        isMoving: true,
+                        operationalState: ELEVATOR_STATES.MOVING
                     }
                 }
 
@@ -148,6 +157,7 @@ export const useElevatorSystem = (numFloors, numElevators, schedulingMode = 'man
                         targetFloor,
                         direction: targetFloor > e.currentFloor ? 'up' : 'down',
                         isMoving: true,
+                        operationalState: ELEVATOR_STATES.MOVING,
                         queue: [{ floor: targetFloor, callDirection: null }]
                     }
                     : e
@@ -157,131 +167,243 @@ export const useElevatorSystem = (numFloors, numElevators, schedulingMode = 'man
 
     // Effect to handle elevator movement (floor-by-floor for both manual and auto modes)
     useEffect(() => {
-        const intervals = elevators.map(elevator => {
-            if (!elevator.isMoving || elevator.targetFloor === null) return null
+        // Handle MOVING state - elevator traveling between floors
+        const handleMovingState = (elevator) => {
+            const currentFloor = elevator.currentFloor
+            const targetFloor = elevator.targetFloor
+            const direction = elevator.direction
+            
+            // Calculate next floor
+            let nextFloor = currentFloor
+            if (direction === 'up') {
+                nextFloor = currentFloor + 1
+            } else if (direction === 'down') {
+                nextFloor = currentFloor - 1
+            }
 
-            // Move one floor at a time (1 second per floor)
+            // Safety check
+            if (nextFloor < 1 || nextFloor > numFloors) {
+                console.error(`Elevator ${elevator.id} tried to move to invalid floor ${nextFloor}`)
+                setElevators(prev =>
+                    prev.map(e => e.id === elevator.id ? {
+                        ...e,
+                        targetFloor: null,
+                        direction: 'idle',
+                        isMoving: false,
+                        operationalState: ELEVATOR_STATES.IDLE,
+                        queue: []
+                    } : e)
+                )
+                return null
+            }
+
+            // Calculate travel time based on distance to target
+            const remainingDistance = Math.abs(targetFloor - currentFloor)
+            const timeToNextFloor = remainingDistance === 1 
+                ? calculateTravelTime(1) 
+                : ELEVATOR_TIMING.FLOOR_TRAVEL_TIME
+
             return setTimeout(() => {
                 setElevators(prev =>
                     prev.map(e => {
                         if (e.id !== elevator.id) return e
 
-                        // Move one floor closer to target
-                        const currentFloor = e.currentFloor
-                        const targetFloor = e.targetFloor
-                        const direction = e.direction
-                        
-                        let nextFloor = currentFloor
-                        if (direction === 'up') {
-                            nextFloor = currentFloor + 1
-                        } else if (direction === 'down') {
-                            nextFloor = currentFloor - 1
-                        }
-
-                        // Safety check: ensure nextFloor is within valid range
-                        if (nextFloor < 1 || nextFloor > numFloors) {
-                            console.error(`Elevator ${e.id} tried to move to invalid floor ${nextFloor}`)
-                            return {
-                                ...e,
-                                targetFloor: null,
-                                direction: 'idle',
-                                isMoving: false,
-                                queue: []
-                            }
-                        }
-
                         // Check if we've reached the target floor
                         if (nextFloor === targetFloor) {
-                            // Get the call information for the reached floor
-                            const reachedCall = e.queue[0]
-                            
-                            // Remove reached floor from queue
-                            let newQueue = e.queue.slice(1)
-
-                            // For SSTF algorithm, re-sort queue based on new position
-                            if (schedulingMode === 'sstf' && newQueue.length > 0) {
-                                newQueue.sort((a, b) => {
-                                    const distA = Math.abs(a.floor - nextFloor)
-                                    const distB = Math.abs(b.floor - nextFloor)
-                                    return distA - distB
-                                })
-                            }
-
-                            // Determine next direction based on call direction or queue
-                            let newDirection = 'idle'
-                            let nextTarget = null
-                            
-                            // If the call had a direction, continue in that direction if possible
-                            if (reachedCall && reachedCall.callDirection && isAutoMode) {
-                                // Check if there are more floors in the call direction
-                                const continueDirection = reachedCall.callDirection
-                                
-                                // For LOOK: continue in call direction to serve similar calls
-                                if (schedulingMode === 'look') {
-                                    // Find next floor in the same direction from queue
-                                    const nextInDirection = newQueue.find(q => {
-                                        if (continueDirection === 'up') {
-                                            return q.floor > nextFloor
-                                        } else {
-                                            return q.floor < nextFloor
-                                        }
-                                    })
-                                    
-                                    if (nextInDirection) {
-                                        nextTarget = nextInDirection.floor
-                                        newDirection = continueDirection
-                                    } else if (newQueue.length > 0) {
-                                        // No more in same direction, go to next in queue
-                                        nextTarget = newQueue[0].floor
-                                        newDirection = nextTarget > nextFloor ? 'up' : 'down'
-                                    }
-                                } else {
-                                    // SSTF or manual: just go to next in queue
-                                    if (newQueue.length > 0) {
-                                        nextTarget = newQueue[0].floor
-                                        newDirection = nextTarget > nextFloor ? 'up' : 'down'
-                                    }
-                                }
-                            } else {
-                                // No call direction (manual mode) - just go to next floor in queue
-                                if (newQueue.length > 0) {
-                                    nextTarget = newQueue[0].floor
-                                    newDirection = nextTarget > nextFloor ? 'up' : 'down'
-                                }
-                            }
-
-                            // If we have a next target, continue moving
-                            if (nextTarget !== null) {
-                                return {
-                                    ...e,
-                                    currentFloor: nextFloor,
-                                    targetFloor: nextTarget,
-                                    direction: newDirection,
-                                    queue: newQueue,
-                                    isMoving: true
-                                }
-                            }
-
-                            // No more floors, become idle
+                            // Transition to ARRIVING state
                             return {
                                 ...e,
                                 currentFloor: nextFloor,
-                                targetFloor: null,
-                                direction: 'idle',
-                                isMoving: false,
-                                queue: []
+                                operationalState: ELEVATOR_STATES.ARRIVING
                             }
                         }
 
                         // Continue moving toward target
                         return {
                             ...e,
-                            currentFloor: nextFloor,
-                            isMoving: true
+                            currentFloor: nextFloor
                         }
                     })
                 )
-            }, 1000) // 1 second per floor
+            }, timeToNextFloor)
+        }
+
+        // Handle ARRIVING state - elevator settling at floor
+        const handleArrivingState = (elevator) => {
+            return setTimeout(() => {
+                setElevators(prev =>
+                    prev.map(e => e.id === elevator.id ? {
+                        ...e,
+                        operationalState: ELEVATOR_STATES.DOORS_OPENING,
+                        doorProgress: 0
+                    } : e)
+                )
+            }, ELEVATOR_TIMING.ARRIVAL_SETTLING_TIME)
+        }
+
+        // Handle DOORS_OPENING state
+        const handleDoorsOpeningState = (elevator) => {
+            return setTimeout(() => {
+                setElevators(prev =>
+                    prev.map(e => e.id === elevator.id ? {
+                        ...e,
+                        operationalState: ELEVATOR_STATES.DOORS_OPEN,
+                        doorProgress: 100
+                    } : e)
+                )
+            }, ELEVATOR_TIMING.DOOR_OPEN_TIME)
+        }
+
+        // Handle DOORS_OPEN state - passengers boarding/alighting
+        const handleDoorsOpenState = (elevator) => {
+            const holdTime = calculateDoorHoldTime()
+            
+            return setTimeout(() => {
+                setElevators(prev =>
+                    prev.map(e => e.id === elevator.id ? {
+                        ...e,
+                        operationalState: ELEVATOR_STATES.DOORS_CLOSING
+                    } : e)
+                )
+            }, holdTime)
+        }
+
+        // Handle DOORS_CLOSING state - prepare for next move or idle
+        const handleDoorsClosingState = (elevator) => {
+            return setTimeout(() => {
+                setElevators(prev =>
+                    prev.map(e => {
+                        if (e.id !== elevator.id) return e
+
+                        const currentFloor = e.currentFloor
+                        
+                        // Get the call information for the reached floor
+                        const reachedCall = e.queue[0]
+                        
+                        // Remove reached floor from queue
+                        let newQueue = e.queue.slice(1)
+
+                        // For SSTF algorithm, re-sort queue based on new position
+                        if (schedulingMode === 'sstf' && newQueue.length > 0) {
+                            newQueue.sort((a, b) => {
+                                const distA = Math.abs(a.floor - currentFloor)
+                                const distB = Math.abs(b.floor - currentFloor)
+                                return distA - distB
+                            })
+                        }
+
+                        // Determine next direction based on call direction or queue
+                        let newDirection = 'idle'
+                        let nextTarget = null
+                        
+                        // If the call had a direction, continue in that direction if possible
+                        if (reachedCall && reachedCall.callDirection && isAutoMode) {
+                            const continueDirection = reachedCall.callDirection
+                            
+                            // For LOOK: continue in call direction to serve similar calls
+                            if (schedulingMode === 'look') {
+                                const nextInDirection = newQueue.find(q => {
+                                    if (continueDirection === 'up') {
+                                        return q.floor > currentFloor
+                                    } else {
+                                        return q.floor < currentFloor
+                                    }
+                                })
+                                
+                                if (nextInDirection) {
+                                    nextTarget = nextInDirection.floor
+                                    newDirection = continueDirection
+                                } else if (newQueue.length > 0) {
+                                    nextTarget = newQueue[0].floor
+                                    newDirection = nextTarget > currentFloor ? 'up' : 'down'
+                                }
+                            } else {
+                                // SSTF or manual: just go to next in queue
+                                if (newQueue.length > 0) {
+                                    nextTarget = newQueue[0].floor
+                                    newDirection = nextTarget > currentFloor ? 'up' : 'down'
+                                }
+                            }
+                        } else {
+                            // No call direction (manual mode) - just go to next floor in queue
+                            if (newQueue.length > 0) {
+                                nextTarget = newQueue[0].floor
+                                newDirection = nextTarget > currentFloor ? 'up' : 'down'
+                            }
+                        }
+
+                        // Add direction change delay if needed
+                        const needsDirectionChange = newDirection !== 'idle' && 
+                            newDirection !== e.direction && 
+                            e.direction !== 'idle'
+
+                        if (needsDirectionChange) {
+                            // Add a small delay for direction change
+                            setTimeout(() => {
+                                setElevators(prev2 => 
+                                    prev2.map(e2 => e2.id === elevator.id ? {
+                                        ...e2,
+                                        direction: newDirection,
+                                        targetFloor: nextTarget,
+                                        operationalState: ELEVATOR_STATES.MOVING,
+                                        doorProgress: 0
+                                    } : e2)
+                                )
+                            }, ELEVATOR_TIMING.DIRECTION_CHANGE_DELAY)
+
+                            return {
+                                ...e,
+                                queue: newQueue,
+                                doorProgress: 0
+                            }
+                        }
+
+                        // If we have a next target, continue moving
+                        if (nextTarget !== null) {
+                            return {
+                                ...e,
+                                targetFloor: nextTarget,
+                                direction: newDirection,
+                                queue: newQueue,
+                                isMoving: true,
+                                operationalState: ELEVATOR_STATES.MOVING,
+                                doorProgress: 0
+                            }
+                        }
+
+                        // No more floors, become idle
+                        return {
+                            ...e,
+                            targetFloor: null,
+                            direction: 'idle',
+                            isMoving: false,
+                            operationalState: ELEVATOR_STATES.IDLE,
+                            queue: [],
+                            doorProgress: 0
+                        }
+                    })
+                )
+            }, ELEVATOR_TIMING.DOOR_CLOSE_TIME)
+        }
+
+        const intervals = elevators.map(elevator => {
+            if (!elevator.isMoving || elevator.targetFloor === null) return null
+
+            // Handle different operational states
+            switch (elevator.operationalState) {
+                case ELEVATOR_STATES.MOVING:
+                    return handleMovingState(elevator)
+                case ELEVATOR_STATES.ARRIVING:
+                    return handleArrivingState(elevator)
+                case ELEVATOR_STATES.DOORS_OPENING:
+                    return handleDoorsOpeningState(elevator)
+                case ELEVATOR_STATES.DOORS_OPEN:
+                    return handleDoorsOpenState(elevator)
+                case ELEVATOR_STATES.DOORS_CLOSING:
+                    return handleDoorsClosingState(elevator)
+                default:
+                    return null
+            }
         })
 
         return () => {
