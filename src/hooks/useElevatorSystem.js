@@ -489,10 +489,11 @@ export const useElevatorSystem = (numFloors, numElevators, schedulingMode = 'man
                         targetFloor,
                         direction: newDirection,
                         isMoving: true,
-                        operationalState: ELEVATOR_STATES.MOVING
+                        operationalState: ELEVATOR_STATES.MOVING,
+                        lastStateChangeTime: Date.now()
                     }
                     
-                    // Schedule transition for this elevator
+                    // Trigger the transition state machine to schedule the first move
                     setTimeout(() => scheduleNextTransition(elevatorId), 0)
                     
                     return updated
@@ -532,10 +533,11 @@ export const useElevatorSystem = (numFloors, numElevators, schedulingMode = 'man
                     direction,
                     isMoving: true,
                     operationalState: ELEVATOR_STATES.MOVING,
-                    queue: [{ floor: targetFloor, callDirection: null, timestamp: Date.now() }]
+                    queue: [{ floor: targetFloor, callDirection: null, timestamp: Date.now() }],
+                    lastStateChangeTime: Date.now()
                 }
                 
-                // Schedule transition
+                // Trigger the transition state machine to schedule the first move
                 setTimeout(() => scheduleNextTransition(elevatorId), 0)
                 
                 return updated
