@@ -45,7 +45,7 @@ const HeroSection = ({ schedulingMode, setSchedulingMode }) => {
                     <div>
                         <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
                             <span className="text-5xl">{info.emoji}</span>
-                            <span>Elevator Simulator</span>
+                            <span>Simple Elevator Simulator</span>
                         </h1>
                         <p className="text-blue-100 text-lg">
                             Experience different elevator scheduling algorithms in action

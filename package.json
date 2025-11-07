@@ -1,10 +1,32 @@
 {
   "name": "simple-elevator-simulator",
-  "description": "A simple elevator simulator built with React and Vite.",
+  "description": "An interactive elevator scheduling simulator that visualizes and compares different elevator dispatch algorithms (LOOK, SSTF) in real-time. Built for educational purposes and algorithm analysis.",
   "private": false,
-  "version": "0.0.1",
+  "version": "1.0.0",
   "type": "module",
-  "homepage": "https://github.com/phatpham9/simple-elevator-simulator",
+  "author": "Phat Pham",
+  "license": "MIT",
+  "keywords": [
+    "elevator",
+    "simulator",
+    "scheduling-algorithms",
+    "look-algorithm",
+    "sstf-algorithm",
+    "visualization",
+    "react",
+    "vite",
+    "tailwindcss",
+    "education",
+    "computer-science"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/phatpham9/simple-elevator-simulator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/phatpham9/simple-elevator-simulator/issues"
+  },
+  "homepage": "https://phatpham9.github.io/simple-elevator-simulator",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"

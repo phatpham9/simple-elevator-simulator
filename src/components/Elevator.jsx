@@ -26,7 +26,7 @@ const Elevator = () => {
                             <div>
                                 <h1 className="text-2xl font-bold flex items-center gap-2">
                                     <span className="text-3xl">🛗</span>
-                                    <span>Elevator Simulator</span>
+                                    <span>Simple Elevator Simulator</span>
                                 </h1>
                                 <p className="text-blue-100 text-sm mt-1">
                                     {schedulingMode === 'manual' ? '👆 Manual Mode' : 
