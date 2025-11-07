@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import StatisticsDashboard from './StatisticsDashboard'
-import ConfigPanel from './ConfigPanel'
+import AlgorithmAndBuildingPanel from './AlgorithmAndBuildingPanel'
 import InstructionsPanel from './InstructionsPanel'
 
 const RightSidebar = ({ 
@@ -71,7 +71,7 @@ const RightSidebar = ({
                         <h2 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
                             ⚙️ Configuration
                         </h2>
-                        <ConfigPanel 
+                        <AlgorithmAndBuildingPanel 
                             schedulingMode={schedulingMode}
                             setSchedulingMode={setSchedulingMode}
                             numFloors={numFloors}

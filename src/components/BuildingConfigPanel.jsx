@@ -1,4 +1,4 @@
-const ConfigurationPanel = ({ numFloors, setNumFloors, numElevators, setNumElevators }) => {
+const BuildingConfigPanel = ({ numFloors, setNumFloors, numElevators, setNumElevators }) => {
     return (
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-slate-200 hover:shadow-xl transition-shadow duration-200">
             <div className="flex items-center gap-2 mb-4">
@@ -42,4 +42,4 @@ const ConfigurationPanel = ({ numFloors, setNumFloors, numElevators, setNumEleva
     )
 }
 
-export default ConfigurationPanel
+export default BuildingConfigPanel

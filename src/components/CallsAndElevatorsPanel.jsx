@@ -1,6 +1,6 @@
 import { getElevatorColorClass } from '../utils/elevatorUtils'
 
-const ControlPanel = ({ calls, elevators, assignCall, moveElevator, numFloors, isAutoMode, autoAssignCalls, schedulingMode }) => {
+const CallsAndElevatorsPanel = ({ calls, elevators, assignCall, moveElevator, numFloors, isAutoMode, autoAssignCalls, schedulingMode }) => {
     const getAlgorithmName = (mode) => {
         switch (mode) {
             case 'look':
@@ -154,4 +154,4 @@ const ControlPanel = ({ calls, elevators, assignCall, moveElevator, numFloors, i
     )
 }
 
-export default ControlPanel
+export default CallsAndElevatorsPanel

@@ -1,4 +1,4 @@
-const ConfigPanel = ({ 
+const AlgorithmAndBuildingPanel = ({ 
     schedulingMode, 
     setSchedulingMode, 
     numFloors, 
@@ -115,4 +115,4 @@ const ConfigPanel = ({
     )
 }
 
-export default ConfigPanel
+export default AlgorithmAndBuildingPanel
