@@ -88,39 +88,36 @@ const StatisticsDashboard = ({ elevators, calls, isAutoMode }) => {
     }
 
     return (
-        <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-6 mb-6 hover:shadow-xl transition-shadow duration-200">
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-slate-800">
+        <div className="bg-white rounded-lg shadow-md border border-slate-200 p-4 hover:shadow-lg transition-shadow duration-200">
+            <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                     📊 System Statistics
                 </h2>
-                <span className="text-xs text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                    Live Updates
+                <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
+                    Live
                 </span>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {statCards.map((stat, index) => {
                     const colors = getColorClasses(stat.color)
                     return (
                         <div
                             key={index}
-                            className={`${colors.bg} ${colors.border} border-2 rounded-lg p-4 transition-all duration-200 hover:shadow-md hover:scale-105`}
+                            className={`${colors.bg} ${colors.border} border rounded-lg p-3 transition-all duration-200 hover:shadow-md`}
                         >
-                            <div className="flex items-center justify-between mb-2">
-                                <span className={`text-3xl ${colors.icon}`}>{stat.icon}</span>
+                            <div className="flex items-center justify-between mb-1">
+                                <span className={`text-2xl ${colors.icon}`}>{stat.icon}</span>
                                 {stat.total !== undefined && (
                                     <span className="text-xs text-slate-500">
-                                        of {stat.total}
+                                        /{stat.total}
                                     </span>
                                 )}
                             </div>
-                            <div className={`text-3xl font-bold ${colors.text} mb-1`}>
+                            <div className={`text-2xl font-bold ${colors.text}`}>
                                 {stat.value}
-                                {stat.total !== undefined && (
-                                    <span className="text-lg text-slate-400">/{stat.total}</span>
-                                )}
                             </div>
-                            <div className="text-sm font-semibold text-slate-700 mb-1">
+                            <div className="text-xs font-semibold text-slate-700">
                                 {stat.label}
                             </div>
                             <div className="text-xs text-slate-500">
@@ -131,32 +128,32 @@ const StatisticsDashboard = ({ elevators, calls, isAutoMode }) => {
                 })}
             </div>
 
-            {/* Additional System Info */}
-            <div className="mt-4 pt-4 border-t border-slate-200">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            {/* Additional System Info - Compact */}
+            <div className="mt-3 pt-3 border-t border-slate-200">
+                <div className="grid grid-cols-4 gap-3 text-center">
                     <div>
-                        <div className="text-xs text-slate-500 mb-1">System Mode</div>
-                        <div className="text-sm font-semibold text-slate-700">
-                            {isAutoMode ? '🤖 Automatic' : '👆 Manual'}
+                        <div className="text-xs text-slate-500">Mode</div>
+                        <div className="text-xs font-semibold text-slate-700">
+                            {isAutoMode ? '🤖 Auto' : '👆 Manual'}
                         </div>
                     </div>
                     <div>
-                        <div className="text-xs text-slate-500 mb-1">Total Elevators</div>
-                        <div className="text-sm font-semibold text-slate-700">
-                            {elevators.length} Units
+                        <div className="text-xs text-slate-500">Units</div>
+                        <div className="text-xs font-semibold text-slate-700">
+                            {elevators.length}
                         </div>
                     </div>
                     <div>
-                        <div className="text-xs text-slate-500 mb-1">Efficiency</div>
-                        <div className="text-sm font-semibold text-slate-700">
+                        <div className="text-xs text-slate-500">Efficiency</div>
+                        <div className="text-xs font-semibold text-slate-700">
                             {elevators.length > 0 
                                 ? Math.round((stats.activeElevators / elevators.length) * 100)
                                 : 0}%
                         </div>
                     </div>
                     <div>
-                        <div className="text-xs text-slate-500 mb-1">Status</div>
-                        <div className="text-sm font-semibold text-slate-700">
+                        <div className="text-xs text-slate-500">Status</div>
+                        <div className="text-xs font-semibold text-slate-700">
                             {stats.pendingCalls > 0 ? '🟡 Busy' : '🟢 Ready'}
                         </div>
                     </div>
